@@ -1,4 +1,4 @@
-numpy<2.0
-opencv-python
-mediapipe
+numpy<2
+opencv-contrib-python==4.11.0.86
+mediapipe==0.10.21
 pygame
