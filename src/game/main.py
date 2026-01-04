@@ -42,6 +42,9 @@ while run:
     fighter1.movex(actions_p1)
     fighter1.movey(actions_p1)
 
+    fighter1.handle_attack(actions_p1)
+    fighter1.attack(screen)
+    
     #draw fighters
     fighter1.draw(screen)
     fighter2.draw(screen)

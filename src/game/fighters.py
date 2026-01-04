@@ -10,33 +10,73 @@ class Fighter():
         self.rect = pygame.Rect(x, y, 80, 180)
         self.speed = 10
         self.vel_y = 0
+        self.attack_type = 0  # 0: no attack, 1: punch, 2: kick
+        self.attacking = False
+        self.attack_timer = 0
     
     def movey(self, actions: Actions):
-        # Apply gravity
-        onGround = self.rect.y >= FLOOR_TOP_Y
-        if actions.jump and onGround:
-            self.vel_y = JUMP_VELOCITY
+        if self.attacking == False:
+            # Apply gravity
+            onGround = self.rect.y >= FLOOR_TOP_Y
+            if actions.jump and onGround:
+                self.vel_y = JUMP_VELOCITY
+            self.vel_y += GRAVITY
+            self.rect.y += self.vel_y
 
-        self.vel_y += GRAVITY
-        self.rect.y += self.vel_y
-
-        # Prevent falling below the floor
-        if self.rect.y > FLOOR_TOP_Y:
-            self.rect.y = FLOOR_TOP_Y
-            self.vel_y = 0
+            # Prevent falling below the floor
+            if self.rect.y > FLOOR_TOP_Y:
+                self.rect.y = FLOOR_TOP_Y
+                self.vel_y = 0
 
     def movex(self, actions: Actions):
-        self.rect.x += actions.movex * self.speed
+        if self.attacking == False:
+            self.rect.x += actions.movex * self.speed
         
-        # Keep fighter within screen bounds
-        if self.rect.left < 0:
-            self.rect.left = 0
-        if self.rect.right > 1000:
-            self.rect.right = 1000
-        if self.rect.top < 0:
-            self.rect.top = 0
-        if self.rect.bottom > 600:
-            self.rect.bottom = 600
+            # Keep fighter within screen bounds
+            if self.rect.left < 0:
+                self.rect.left = 0
+            if self.rect.right > 1000:
+                self.rect.right = 1000
+            if self.rect.top < 0:
+                self.rect.top = 0
+            if self.rect.bottom > 600:
+                self.rect.bottom = 600
+
+    def attack(self, surface):
+        if not self.attacking:
+            return
+        
+        # Define attack hitbox
+        hitbox_width = 40
+        hitbox_height = 60
+        
+        attacking_rect = pygame.Rect(
+            self.rect.right,
+            self.rect.y + self.rect.height // 4,
+            hitbox_width,
+            hitbox_height
+        )
+        pygame.draw.rect(surface, (0, 255, 0), attacking_rect, 2)
+
+    def handle_attack(self, actions: Actions):
+        #if already attacking, count down
+        if self.attack_timer > 0:
+            self.attack_timer -= 1
+            self.attacking = True
+            return
+        
+        #start new attack
+        if actions.punch:
+            self.attack_type = 1
+            self.attack_timer = 12
+            self.attacking = True
+        elif actions.kick:
+            self.attack_type = 2
+            self.attack_timer = 16
+            self.attacking = True
+        else:
+            self.attack_type = 0
+            self.attacking = False
 
     def draw(self, surface):
         pygame.draw.rect(surface, (255, 0, 0), self.rect)

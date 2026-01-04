@@ -14,5 +14,8 @@ def get_actions_player1() -> Actions:
 
     #jump
     jump = key[pygame.K_UP]
+    #attack actions
+    punch = key[pygame.K_r]
+    kick = key[pygame.K_t]
 
-    return Actions(movex=movex, jump=jump)
+    return Actions(movex=movex, jump=jump, punch=punch, kick=kick)
