@@ -7,12 +7,15 @@ FLOOR_TOP_Y = 310
 
 class Fighter():
     def __init__(self, x, y):
+        #self.flip = False
         self.rect = pygame.Rect(x, y, 80, 180)
         self.speed = 10
         self.vel_y = 0
         self.attack_type = 0  # 0: no attack, 1: punch, 2: kick
         self.attacking = False
         self.attack_timer = 0
+        self.health = 100
+        self.hit_applied = False
     
     def movey(self, actions: Actions):
         if self.attacking == False:
@@ -42,7 +45,7 @@ class Fighter():
             if self.rect.bottom > 600:
                 self.rect.bottom = 600
 
-    def attack(self, surface):
+    def attack(self, surface, target):
         if not self.attacking:
             return
         
@@ -56,6 +59,11 @@ class Fighter():
             hitbox_width,
             hitbox_height
         )
+        if attacking_rect.colliderect(target.rect) and not self.hit_applied:
+            target.health -= 10
+            target.health = max(0, target.health)
+            self.hit_applied = True
+
         pygame.draw.rect(surface, (0, 255, 0), attacking_rect, 2)
 
     def handle_attack(self, actions: Actions):
@@ -70,16 +78,15 @@ class Fighter():
             self.attack_type = 1
             self.attack_timer = 12
             self.attacking = True
+            self.hit_applied = False
         elif actions.kick:
             self.attack_type = 2
             self.attack_timer = 16
             self.attacking = True
+            self.hit_applied = False 
         else:
             self.attack_type = 0
             self.attacking = False
 
     def draw(self, surface):
         pygame.draw.rect(surface, (255, 0, 0), self.rect)
-
-
-    
