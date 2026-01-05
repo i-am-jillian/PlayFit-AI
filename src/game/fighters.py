@@ -7,7 +7,7 @@ FLOOR_TOP_Y = 310
 
 class Fighter():
     def __init__(self, x, y):
-        #self.flip = False
+        self.flip = False
         self.rect = pygame.Rect(x, y, 80, 180)
         self.speed = 10
         self.vel_y = 0
@@ -31,7 +31,7 @@ class Fighter():
                 self.rect.y = FLOOR_TOP_Y
                 self.vel_y = 0
 
-    def movex(self, actions: Actions):
+    def movex(self, actions: Actions, target):
         if self.attacking == False:
             self.rect.x += actions.movex * self.speed
         
@@ -45,6 +45,12 @@ class Fighter():
             if self.rect.bottom > 600:
                 self.rect.bottom = 600
 
+            #ensure players face each other
+            if target.rect.centerx > self.rect.centerx:
+                self.flip = False
+            else:
+                self.flip = True
+
     def attack(self, surface, target):
         if not self.attacking:
             return
@@ -52,9 +58,14 @@ class Fighter():
         # Define attack hitbox
         hitbox_width = 40
         hitbox_height = 60
+
+        if self.flip:
+            hitbox_x = self.rect.left - hitbox_width
+        else:
+            hitbox_x = self.rect.right
         
         attacking_rect = pygame.Rect(
-            self.rect.right,
+            hitbox_x,
             self.rect.y + self.rect.height // 4,
             hitbox_width,
             hitbox_height
