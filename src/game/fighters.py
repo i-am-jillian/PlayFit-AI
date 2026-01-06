@@ -8,7 +8,7 @@ FLOOR_TOP_Y = 310
 class Fighter():
     def __init__(self, x, y):
         self.flip = False
-        self.rect = pygame.Rect(x, y, 80, 180)
+        self.rect = pygame.Rect(x, y, 130, 180)
         self.speed = 10
         self.vel_y = 0
         self.attack_type = 0  # 0: no attack, 1: punch, 2: kick
@@ -16,7 +16,19 @@ class Fighter():
         self.attack_timer = 0
         self.health = 100
         self.hit_applied = False
-    
+        
+        #images
+        self.idle_img = pygame.image.load("assets/sprites/Fighter1/Shinchan-idle.png").convert_alpha()
+        self.idle_img = pygame.transform.scale(self.idle_img, (130, 180))
+
+        self.punch_img = pygame.image.load("assets/sprites/Fighter1/Shinchan-punch.png").convert_alpha()
+        self.punch_img = pygame.transform.scale(self.punch_img, (130, 180))
+        
+        self.kick_img = pygame.image.load("assets/sprites/Fighter1/Shinchan-kick.png").convert_alpha()
+        self.kick_img = pygame.transform.scale(self.kick_img, (130, 180))
+
+
+
     def movey(self, actions: Actions):
         if self.attacking == False:
             # Apply gravity
@@ -46,9 +58,14 @@ class Fighter():
                 self.rect.bottom = 600
 
             #ensure players face each other
-            if target.rect.centerx > self.rect.centerx:
+            #if target.rect.centerx > self.rect.centerx:
+            #    self.flip = False
+            #else:
+             #   self.flip = True
+
+            if actions.movex > 0:
                 self.flip = False
-            else:
+            elif actions.movex < 0:
                 self.flip = True
 
     def attack(self, surface, target):
@@ -56,7 +73,7 @@ class Fighter():
             return
         
         # Define attack hitbox
-        hitbox_width = 40
+        hitbox_width = 2
         hitbox_height = 60
 
         if self.flip:
@@ -75,7 +92,7 @@ class Fighter():
             target.health = max(0, target.health)
             self.hit_applied = True
 
-        pygame.draw.rect(surface, (0, 255, 0), attacking_rect, 2)
+        #pygame.draw.rect(surface, (0, 255, 0), attacking_rect, 2)
 
     def handle_attack(self, actions: Actions):
         #if already attacking, count down
@@ -100,4 +117,17 @@ class Fighter():
             self.attacking = False
 
     def draw(self, surface):
-        pygame.draw.rect(surface, (255, 0, 0), self.rect)
+        if self.attacking:
+            if self.attack_type == 1:
+                image = self.punch_img
+            elif self.attack_type == 2:
+                image = self.kick_img
+            else:
+                image = self.idle_img
+        else:
+            image = self.idle_img
+
+        if self.flip:
+            image = pygame.transform.flip(image, True, False)
+        
+        surface.blit(image, self.rect)
