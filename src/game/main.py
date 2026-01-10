@@ -2,6 +2,7 @@ import pygame
 from fighters import IDLE, PUNCH, KICK, WIN, DEAD, Fighter
 from actions import Actions #importing class from the actions.py file
 from input_keyboard import get_actions_player1 #importing function from input_keyboard.py file
+from bot import FighterAI
 
 pygame.init() #initialized pygame
 
@@ -52,7 +53,7 @@ def draw_health_bar(health, x, y):
 
 #create fighter instance
 fighter1 = Fighter(200, 310)
-fighter2 = Fighter(700, 310)
+fighter2 = FighterAI(700, 310)
 game_state = PLAYING
 winner = None
 
@@ -77,6 +78,13 @@ while run:
         fighter1.handle_attack(actions_p1)
         fighter1.attack(screen, fighter2)
 
+        #update bot fighter
+        actions_p2 = fighter2.getActions(fighter1)
+        fighter2.movex(actions_p2, fighter1)
+        fighter2.movey(actions_p2)
+        fighter2.handle_attack(actions_p2)
+        fighter2.attack(screen, fighter1)
+
         #check game over
         if fighter1.health <= 0:
             game_state = GAME_OVER
@@ -99,11 +107,11 @@ while run:
         #create action instances for each player
 
         #move fighters
-    fighter1.movex(actions_p1, fighter2)
-    fighter1.movey(actions_p1)
+    #fighter1.movex(actions_p1, fighter2)
+    #fighter1.movey(actions_p1)
 
-    fighter1.handle_attack(actions_p1)
-    fighter1.attack(screen, fighter2)
+    #fighter1.handle_attack(actions_p1)
+    #fighter1.attack(screen, fighter2)
 
         #draw fighters
     fighter1.draw(screen)
