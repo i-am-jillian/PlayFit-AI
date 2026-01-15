@@ -39,6 +39,9 @@ WHITE = (255, 255, 255)
 #load backgroung image
 background_image = pygame.image.load("assets/backgrounds/background.jpg").convert_alpha()
 
+ko_img = pygame.image.load("assets/sprites/GameOver/KO.png").convert_alpha()
+ko_img = pygame.transform.scale(ko_img, (150, 100))
+
 gameOver_img = pygame.image.load("assets/sprites/GameOver/GameOver.png").convert_alpha()
 gameOver_img = pygame.transform.scale(gameOver_img, (400, 400))
 
@@ -51,6 +54,8 @@ UI_Y_WIN = 10
 UI_X_OVER = SCREEN_WIDTH // 2 - 200
 UI_Y_OVER = -20
 
+KO_X = SCREEN_WIDTH // 2 - 65
+KO_Y = -10
 #function to draw background
 def draw_background():
     scaled_background = pygame.transform.scale(background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -157,6 +162,9 @@ while run:
     #show health bars
     draw_health_bar(fighter1.health, 20, 20)
     draw_health_bar(fighter2.health, 580, 20)
+
+    #show ko image
+    screen.blit(ko_img, (KO_X, KO_Y))
 
     if game_state == PLAYING:
         #actions_p1 = get_actions_player1()
