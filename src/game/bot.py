@@ -17,7 +17,7 @@ class FighterAI(Fighter):
         self.last_jump_time = 0
 
         self.start_time = time.time()
-        self.grace_period = 25.0
+        self.grace_period = 10.0
         
     def getActions(self, target: Fighter) -> Actions:
         actions = Actions()
