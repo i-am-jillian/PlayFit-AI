@@ -11,6 +11,7 @@ class ActionDetector:
         self.ra_history = deque(maxlen = 6)
         self.la_history = deque(maxlen = 6)
         self.leaning_history = deque(maxlen = 8)
+        self.ankle_height_history = deque(maxlen = 10)
 
         self.cooldown = {"punch": 0, "kick": 0, "jump": 0, "move_left": 0, "move_right": 0}
     
@@ -158,27 +159,48 @@ class ActionDetector:
 
 
         #jump
-        nose = landmarks[mp_pose.PoseLandmark.NOSE.value]
-        r_w = landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value]
-        l_w = landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value]
+        r_ankle = landmarks[mp_pose.PoseLandmark.RIGHT_ANKLE.value]
+        l_ankle = landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value]
 
         if self.cooldown["jump"] == 0:
-            if visible_enough([nose.visibility, r_w.visibility, l_w.visibility], threshold=0.6):
-                margin = 0.05
-                both_hands_up = (r_w.y < nose.y - margin) and (l_w.y < nose.y - margin)
-                if both_hands_up:
-                    actions.append("JUMP")
-                    self.cooldown["jump"] = 5
-                    print("jump detected")
+            if visible_enough([r_ankle.visibility, l_ankle.visibility], threshold=0.6):
+                ra_current = xy(landmarks[mp_pose.PoseLandmark.RIGHT_ANKLE.value])
+                la_current = xy(landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value])
+                avg_ankle_y = (ra_current[1] + la_current[1]) / 2
+
+                ankle_height_diff = abs(ra_current[1]-la_current[1])
+                ANKLE_SYMMETRY_THRESHOLD = 0.10
+
+                self.ankle_height_history.append(avg_ankle_y)
+                
+                if len(self.ankle_height_history) >= 5:
+                    base = sum(list(self.ankle_height_history)[:5]) / 5
+
+                    if len(self.ankle_height_history) >=3:
+                        ankle_vy = self.ankle_height_history[-1] - self.ankle_height_history[-3]
+
+                        JUMP_HEIGHT_THRESHOLD = 0.08
+                        JUMP_VELOCITY_THRESHOLD = -0.03
+
+                        height_above_base = base - avg_ankle_y
+                        # Detect jump when feet are much closer to hips than normal
+                        if height_above_base > JUMP_HEIGHT_THRESHOLD and ankle_vy <JUMP_VELOCITY_THRESHOLD and ankle_height_diff < ANKLE_SYMMETRY_THRESHOLD:
+                            actions.append("JUMP")
+                            self.cooldown["jump"] = 15  # Longer cooldown for jumps
+                            self.ankle_height_history.clear()
+                            print(f"Jump detected! Height: {height_above_base:.3f}, Velocity: {ankle_vy:.3f}")
+
 
         #Movement detection
         ls_landmark = landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value]
         rs_landmark = landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value]
+        r_w_landmark = landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value]
+        l_w_landmark = landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value]
         
         if self.cooldown["move_left"] == 0:
-            if visible_enough([ls_landmark.visibility, l_w.visibility], threshold=0.5):
-                left_hand_high = (l_w.y < ls[1] - 0.05)
-                right_hand_low = (r_w.y > rs[1] + 0.02)
+            if visible_enough([ls_landmark.visibility, l_w_landmark.visibility], threshold=0.5):
+                left_hand_high = (l_w_landmark.y < ls[1] - 0.05)
+                right_hand_low = (r_w_landmark.y > rs[1] + 0.02)
                 
                 if left_hand_high and right_hand_low:
                     actions.append("MOVE_LEFT")
@@ -186,9 +208,9 @@ class ActionDetector:
                     print("MOVE_LEFT DETECTED")
 
         if self.cooldown["move_right"] == 0:
-            if visible_enough([rs_landmark.visibility, r_w.visibility], threshold=0.5):
-                right_hand_high = (r_w.y < rs[1] - 0.05)
-                left_hand_low = (l_w.y > ls[1] + 0.02)
+            if visible_enough([rs_landmark.visibility, r_w_landmark.visibility], threshold=0.5):
+                right_hand_high = (r_w_landmark.y < rs[1] - 0.05)
+                left_hand_low = (l_w_landmark.y > ls[1] + 0.02)
                 
                 if right_hand_high and left_hand_low:
                     actions.append("MOVE_RIGHT")
